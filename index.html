@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minik Baskı Atölyesi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     RENK / YAZI TİPİ AYARLARI — Tüm sayfanın görünümü buradan kontrol edilir
+     ============================================================ */
+  :root{
+    --bg: #EDF2EA;
+    --ink: #1B2420;
+    --ink-soft: #4B5650;
+    --green: #2FA66B;
+    --green-dark: #1F7A4E;
+    --orange: #FF7A45;
+    --yellow: #FFC93C;
+    --surface: #FFFFFF;
+    --line: #D9E2D7;
+    --screen-bg: #11241B;
+    --screen-text: #6CF2A8;
+    --radius: 18px;
+    --shadow: 0 6px 18px rgba(27,36,32,0.08);
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+    line-height: 1.5;
+  }
+  h1,h2,h3{ font-family:'Baloo 2', sans-serif; margin:0; }
+  a{ color: inherit; }
+
+  /* Hafif "dolgu deseni" — FDM baskıların iç dolgusunu hatırlatan çizgiler */
+  .infill{
+    background-image: repeating-linear-gradient(45deg, rgba(47,166,107,0.07) 0, rgba(47,166,107,0.07) 2px, transparent 2px, transparent 14px);
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    padding: 38px 20px 30px;
+    text-align:center;
+    position:relative;
+  }
+  .status-dot{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:'Space Mono', monospace;
+    font-size:12.5px;
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 14px;
+    margin-bottom:16px;
+    box-shadow: var(--shadow);
+  }
+  .status-dot .dot{
+    width:8px; height:8px; border-radius:50%; background: var(--green);
+    box-shadow: 0 0 0 3px rgba(47,166,107,0.18);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.45;} }
+
+  .shop-name{
+    font-size: clamp(32px, 7vw, 52px);
+    font-weight:800;
+    color: var(--green-dark);
+    letter-spacing: -0.5px;
+  }
+  .shop-tagline{
+    margin-top:10px;
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    max-width: 480px;
+    margin-inline:auto;
+  }
+  .shop-tagline b{ color: var(--ink); }
+
+  /* ---------- Ürün ızgarası ---------- */
+  main{ max-width: 1040px; margin: 0 auto; padding: 10px 20px 10px; }
+  section{ margin-top: 46px; }
+  .section-eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    color: var(--green-dark);
+    margin-bottom:6px;
+  }
+  .section-title{ font-size: clamp(22px,4vw,30px); margin-bottom: 22px; }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 22px;
+  }
+
+  .card{
+    background: var(--surface);
+    border-radius: var(--radius);
+    border:1px solid var(--line);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .card:hover{ transform: translateY(-4px); box-shadow: 0 14px 28px rgba(27,36,32,0.12); }
+
+  .card-visual{
+    height: 168px;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 64px;
+    position:relative;
+  }
+  .card-visual img{ width:100%; height:100%; object-fit:cover; }
+
+  .price-tag{
+    position:absolute; top:12px; right:12px;
+    background: var(--ink);
+    color: #fff;
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:14px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+  }
+
+  .card-body{ padding: 16px 18px 20px; display:flex; flex-direction:column; gap:10px; flex:1; }
+  .card-title{ font-size:19px; font-weight:700; }
+  .card-desc{ font-size: 13.5px; color: var(--ink-soft); margin:0; }
+
+  /* Mini "yazıcı ekranı" — imzamız: ürünün teslim süresini gösteren küçük LCD */
+  .mini-screen{
+    background: var(--screen-bg);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-family:'Space Mono', monospace;
+    font-size: 11.5px;
+    color: var(--screen-text);
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    letter-spacing: 0.3px;
+  }
+  .mini-screen span{ opacity:.92; }
+
+  /* Renk seçim satırı — ürünün basılabileceği renkleri gösteren dropdown */
+  .color-row{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-size:13px;
+    color: var(--ink-soft);
+  }
+  .color-row .color-label{ flex-shrink:0; }
+  .color-swatch{
+    width:16px; height:16px; border-radius:50%;
+    border:2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--line);
+    flex-shrink:0;
+  }
+  .color-select{
+    flex:1;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:7px 10px;
+    font-family:'Work Sans', sans-serif;
+    font-size:13.5px;
+    color: var(--ink);
+    background: var(--surface);
+    cursor:pointer;
+  }
+
+  .order-btn{
+    margin-top: auto;
+    display:inline-flex; align-items:center; justify-content:center; gap:7px;
+    background: var(--green);
+    color:#fff;
+    font-weight:600;
+    font-size: 14.5px;
+    text-decoration:none;
+    border-radius: 11px;
+    padding: 10px 14px;
+    transition: background .15s ease;
+  }
+  .order-btn:hover{ background: var(--green-dark); }
+
+  .order-btn.in-cart{ background: var(--ink); }
+  .order-btn.in-cart:hover{ background: #000; }
+
+  /* ---------- Yüzen sepet butonu ---------- */
+  .cart-fab{
+    position: fixed;
+    bottom: 22px; right: 22px;
+    z-index: 60;
+    background: var(--ink);
+    color:#fff;
+    border:none;
+    border-radius: 999px;
+    padding: 14px 20px;
+    display:flex; align-items:center; gap:9px;
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    box-shadow: 0 10px 24px rgba(27,36,32,0.28);
+    cursor:pointer;
+    transition: transform .15s ease;
+  }
+  .cart-fab:hover{ transform: translateY(-2px); }
+  .cart-fab .cart-count{
+    background: var(--orange);
+    color:#fff;
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    font-weight:700;
+    min-width:20px; height:20px;
+    border-radius:999px;
+    display:flex; align-items:center; justify-content:center;
+    padding: 0 5px;
+  }
+
+  /* ---------- Sepet paneli ---------- */
+  .cart-overlay{
+    position:fixed; inset:0;
+    background: rgba(17,28,22,0.45);
+    z-index: 70;
+    display:none;
+    align-items:flex-end;
+    justify-content:flex-end;
+  }
+  .cart-overlay.open{ display:flex; }
+  .cart-panel{
+    background: var(--bg);
+    width: 100%;
+    max-width: 420px;
+    height: 100%;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.18);
+    display:flex;
+    flex-direction:column;
+    animation: slideIn .22s ease;
+  }
+  @keyframes slideIn{ from{ transform: translateX(24px); opacity:0; } to{ transform:translateX(0); opacity:1; } }
+  .cart-header{
+    padding: 20px 20px 14px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom: 1px solid var(--line);
+  }
+  .cart-header h3{ font-size:21px; }
+  .cart-close{
+    background:none; border:none; font-size:22px; cursor:pointer; color: var(--ink-soft);
+    line-height:1; padding:4px;
+  }
+  .cart-items{ flex:1; overflow-y:auto; padding: 14px 20px; display:flex; flex-direction:column; gap:12px; }
+  .cart-empty{ text-align:center; color: var(--ink-soft); font-size:14px; padding: 40px 10px; }
+  .cart-item{
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+  .cart-item-visual{
+    width:46px; height:46px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:24px; flex-shrink:0;
+  }
+  .cart-item-visual img{ width:100%; height:100%; object-fit:cover; border-radius:10px; }
+  .cart-item-info{ flex:1; min-width:0; }
+  .cart-item-name{ font-size:14.5px; font-weight:600; }
+  .cart-item-color{ font-size:12.5px; color: var(--ink-soft); margin-top:2px; }
+  .cart-item-price{ font-family:'Space Mono', monospace; font-size:13px; margin-top:4px; color: var(--green-dark); font-weight:700; }
+  .qty-control{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .qty-btn{
+    width:26px; height:26px; border-radius:8px;
+    border:1px solid var(--line); background: var(--bg);
+    font-size:15px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--ink);
+  }
+  .qty-val{ font-family:'Space Mono', monospace; font-size:14px; min-width:14px; text-align:center; }
+  .cart-item-remove{
+    background:none; border:none; color:#C0392B; font-size:12.5px; cursor:pointer;
+    text-decoration:underline; flex-shrink:0; padding:0;
+  }
+  .cart-footer{ padding: 16px 20px 22px; border-top: 1px solid var(--line); }
+  .cart-total{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:16px; font-weight:700; margin-bottom:14px;
+  }
+  .cart-total span:last-child{ font-family:'Space Mono', monospace; color: var(--green-dark); }
+  .cart-send-btn{
+    width:100%;
+    background: var(--green);
+    color:#fff; border:none;
+    font-weight:700; font-size:15.5px;
+    padding: 13px 14px;
+    border-radius: 12px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    text-decoration:none;
+  }
+  .cart-send-btn:hover{ background: var(--green-dark); }
+  .cart-clear-btn{
+    width:100%;
+    background:none; border:none;
+    color: var(--ink-soft); font-size:13px;
+    text-decoration:underline;
+    margin-top:10px; cursor:pointer;
+  }
+
+  /* ---------- Sipariş adımları ---------- */
+  .steps{ display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:18px; }
+  .step{
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+  .step-num{
+    font-family:'Space Mono', monospace;
+    color: var(--green-dark);
+    font-weight:700;
+    font-size:13px;
+    margin-bottom:6px;
+  }
+  .step p{ margin:4px 0 0; font-size:14px; color: var(--ink-soft); }
+  .contact-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+  .contact-chip{
+    display:inline-flex; align-items:center; gap:8px;
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-size: 14px;
+    font-weight:500;
+    text-decoration:none;
+    box-shadow: var(--shadow);
+  }
+
+  /* ---------- QR bölümü: "yeni basılmış plaka" hissi ---------- */
+  .print-plate{
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    padding: 32px;
+    text-align:center;
+    position:relative;
+    background:
+      linear-gradient(var(--surface), var(--surface)),
+      repeating-linear-gradient(0deg, rgba(27,36,32,0.05) 0 1px, transparent 1px 22px),
+      repeating-linear-gradient(90deg, rgba(27,36,32,0.05) 0 1px, transparent 1px 22px);
+  }
+  #qrcode{
+    display:inline-flex;
+    margin: 18px auto 14px;
+    padding: 14px;
+    background:#fff;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+  }
+  #qrcode img{ display:block; border-radius:6px; }
+  .url-box{
+    font-family:'Space Mono', monospace;
+    font-size: 13px;
+    background: var(--screen-bg);
+    color: var(--screen-text);
+    padding: 10px 14px;
+    border-radius: 10px;
+    display:inline-block;
+    max-width: 100%;
+    overflow-wrap:anywhere;
+  }
+  .qr-note{ font-size:13px; color: var(--ink-soft); margin-top:14px; max-width:420px; margin-inline:auto; }
+  .warn-box{
+    background:#FFF4E8; border:1px solid #FFD9B0; color:#7A4A12;
+    border-radius:12px; padding:14px 16px; font-size:13.5px; text-align:left;
+    max-width:480px; margin:18px auto 0;
+  }
+  .copy-btn{
+    margin-top:14px;
+    background: var(--ink);
+    color:#fff;
+    border:none;
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    padding:9px 16px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .copy-btn:hover{ background:#000; }
+
+  footer{
+    margin-top: 60px;
+    padding: 28px 20px 40px;
+    text-align:center;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    font-family:'Space Mono', monospace;
+  }
+
+  @media (max-width: 480px){
+    .card-visual{ height:140px; font-size:54px; }
+  }
+
+  /* Klavye ile gezinenler için odak çizgisi */
+  a:focus-visible, button:focus-visible{ outline: 3px solid var(--orange); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){
+    .status-dot .dot{ animation:none; }
+    .card{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="infill">
+  <div class="status-dot"><span class="dot"></span> ATÖLYE AÇIK · YENİ SİPARİŞ ALINIYOR</div>
+  <h1 class="shop-name" id="shopName">Minik Baskı Atölyesi</h1>
+  <p class="shop-tagline">Bambu Lab A1 Combo ile katman katman, <b>tek tek</b> basılan minik anahtarlıklar ve oyuncaklar. Hepsi elden geçiyor, hiçbiri birbirinin aynısı değil. 🛠️</p>
+</header>
+
+<main>
+
+  <section id="urunler">
+    <div class="section-eyebrow">// katalog</div>
+    <h2 class="section-title">Şu an baskıda olanlar</h2>
+    <div class="grid" id="productGrid"></div>
+  </section>
+
+  <section id="siparis">
+    <div class="section-eyebrow">// sipariş</div>
+    <h2 class="section-title">Nasıl sipariş verilir?</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">ADIM 1</div>
+        <strong>Sepete ekle</strong>
+        <p>Beğendiğin ürünleri rengini seçip "Sepete ekle" ile topla.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">ADIM 2</div>
+        <strong>Sepeti gönder</strong>
+        <p>Sağ alttaki sepet butonundan listeyi kontrol et, WhatsApp'tan gönder.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">ADIM 3</div>
+        <strong>Teslim al</strong>
+        <p>Baskı bitince haber verilir, okulda ya da buluşarak teslim edilir.</p>
+      </div>
+    </div>
+    <div class="contact-row" id="contactRow"></div>
+  </section>
+
+  <section id="qr">
+    <div class="section-eyebrow">// paylaş</div>
+    <h2 class="section-title">Bu kataloğu arkadaşlarınla paylaş</h2>
+    <div class="print-plate">
+      <div id="qrArea">
+        <div id="qrcode"></div>
+        <div class="url-box" id="urlText">—</div>
+        <br>
+        <button class="copy-btn" id="copyBtn">Linki kopyala</button>
+      </div>
+      <p class="qr-note">Bu QR kodu telefonla okutan kişi doğrudan bu sayfaya gelir. Kod, sayfanın <b>o anda nerede yayında olduğuna</b> göre otomatik oluşturulur.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>BAMBU LAB A1 COMBO İLE BASILDI · KATMAN KATMAN EL İŞÇİLİĞİ</footer>
+
+<!-- Yüzen sepet butonu -->
+<button class="cart-fab" id="cartFab">
+  🛒 Sepet <span class="cart-count" id="cartCount">0</span>
+</button>
+
+<!-- Sepet paneli -->
+<div class="cart-overlay" id="cartOverlay">
+  <div class="cart-panel">
+    <div class="cart-header">
+      <h3>Sepetim</h3>
+      <button class="cart-close" id="cartClose">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer">
+      <div class="cart-total"><span>Toplam</span><span id="cartTotal">0 TL</span></div>
+      <a class="cart-send-btn" id="cartSendBtn" href="#" target="_blank" rel="noopener">💬 WhatsApp'tan sipariş gönder</a>
+      <button class="cart-clear-btn" id="cartClearBtn">Sepeti boşalt</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* ============================================================
+   AYARLAR — Dükkan adını, iletişim bilgilerini buradan değiştir
+   ============================================================ */
+    const CONFIG = {
+      shopName: "Zelif 3D Baskı Atölyesi",      // Üstteki büyük başlık
+      whatsapp: "905305250278",              // Başında 90 ile, boşluksuz (örn: 905321234567)
+      instagram: "atolye_hesabi",            // @ işareti olmadan kullanıcı adı
+    };
+
+/* ============================================================
+   ÜRÜNLER — Yeni ürün eklemek için aşağıdaki listeye bir blok daha
+   kopyala-yapıştır yap ve bilgilerini değiştir.
+   - emoji: ürünü temsil eden bir emoji (gerçek fotoğraf yoksa kullanılır)
+   - img: gerçek bir fotoğrafın varsa, dosya adını ya da linkini buraya yaz
+          (örn: "img: 'urunler/dinozor.jpg'") — yazarsan emoji yerine o görünür
+   - deliveryTime: ürünün teslime hazır olma süresi (örn: "2-3 gün") —
+                   kartın altındaki küçük ekranda gösterilir.
+   - colors: bu üründen basılabilen renklerin listesi — ziyaretçi bunlardan
+             birini açılır menüden seçip o renkle sipariş verebilir.
+             Yeni bir renk eklersen, aşağıdaki COLOR_HEX listesine de
+             o rengin bir ton kodu eklemen gerekir (yoksa gri görünür).
+   ============================================================ */
+    const products = [
+      {
+        name: "Sonsuzluk Küpü (Büyük)",
+        price: 50,
+        emoji: "",
+        img: "1-infinity-cube-big.jpeg",
+        deliveryTime: "2 gün",
+        colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Beyaz", "Siyah", "Rainbow", "Gri"],
+        desc: "4 x 8cm büyüklüğünde sonsuzluk küpü, stres atan fidget oyuncak."
+      },
+      {
+        name: "Flexi Yılan",
+        price: 50,
+        emoji: "",
+        img: "2-flexi-snake.jpeg",
+        deliveryTime: "2 gün",
+        colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Beyaz", "Siyah", "Rainbow", "Gri"],
+        desc: "Sevimli ve hareketli yılan, stres atan flexi anahtarlık."
+      },
+      {
+        name: "Çin Mantısı Clicker",
+        price: 50,
+        emoji: "",
+        img: "3-dumpling-clicker.jpeg",
+        deliveryTime: "2 gün",
+        colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Rainbow"],
+        desc: "Sevimli yüz ifadeleriyle tasarlanmış, stres atan clicker anahtarlık."
+      },
+      {
+        name: "Makaron Clicker",
+        price: 50,
+        emoji: "",
+        img: "4-macaron-clicker.jpeg",
+        deliveryTime: "2 gün",
+        colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Rainbow"],
+        desc: "Tatlı ve renkli makaronlar şeklinde tasarlanmış, stres atan clicker anahtarlık."
+      },
+      {
+        name: "Bebek Ejderha",
+        price: 50,
+        emoji: "",
+        img: "5-baby-dragon.jpeg",
+        deliveryTime: "2 gün",
+        colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Rainbow"],
+        desc: "Sevimli ve hareketli ejderhalar, stres atan flexi anahtarlık."
+      },
+      {
+        name: "Trax Oyuncak",
+        price: 50,
+        emoji: "",
+        img: "6-trax-toy.jpeg",
+        deliveryTime: "2 gün",
+        colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Siyah", "Rainbow", "Gri"],
+        desc: "Farklı renklerde tasarlanmış,elde çevrilebilen stres atan fidget oyuncak. "
+      }
+    ];
+
+/* ============================================================
+   AŞAĞISI: Sayfayı otomatik dolduran kod — genelde dokunmana gerek yok
+   ============================================================ */
+
+/* Renk adı -> ton kodu. Ürünlere yeni bir renk eklediysen burayı da güncelle. */
+const COLOR_HEX = {
+  "Yeşil": "#2FA66B",
+  "Turuncu": "#FF7A45",
+  "Mavi": "#4D8FFF",
+  "Açık Mavi": "#7EC8FF",
+  "Pembe": "#FF6FA5",
+  "Sarı": "#FFC93C",
+  "Mor": "#9B6BFF",
+  "Lila": "#B79CFF",
+  "Kırmızı": "#E64C3C",
+  "Siyah": "#1B2420",
+  "Beyaz": "#E8EAE6",
+  "Gri": "#9AA39C",
+  "Kahverengi": "#8A5A33"
+};
+function getColorHex(name){ return COLOR_HEX[name] || "#9AA39C"; }
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function waLink(productName, colorName){
+  const colorPart = colorName ? ` (Renk: ${colorName})` : '';
+  const msg = encodeURIComponent(`Merhaba! "${productName}"${colorPart} ürününden bir adet sipariş vermek istiyorum 🙂`);
+  return `https://wa.me/${CONFIG.whatsapp}?text=${msg}`;
+}
+
+/* Bir karttaki renk dropdown'u değiştiğinde: görseli ve sipariş linkini güncelle */
+function updateCardColor(selectEl){
+  const card = selectEl.closest('.card');
+  const hex = getColorHex(selectEl.value);
+  card.querySelector('.color-swatch').style.background = hex;
+  card.querySelector('.card-visual').style.background = hexToRgba(hex, 0.16);
+}
+
+function renderProducts(){
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = products.map((p, i) => {
+    const defaultColor = p.colors[0];
+    const defaultHex = getColorHex(defaultColor);
+    return `
+    <div class="card" data-index="${i}">
+      <div class="card-visual" style="background:${hexToRgba(defaultHex, 0.16)}">
+        ${p.img ? `<img src="${p.img}" alt="${p.name}">` : p.emoji}
+        <div class="price-tag">${p.price} TL</div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${p.name}</div>
+        <p class="card-desc">${p.desc}</p>
+        <div class="mini-screen">
+          <span>📦 Teslim: ${p.deliveryTime}</span>
+        </div>
+        <label class="color-row">
+          <span class="color-label">Renk:</span>
+          <span class="color-swatch" style="background:${defaultHex}"></span>
+          <select class="color-select" onchange="updateCardColor(this)">
+            ${p.colors.map(c => `<option value="${c}">${c}</option>`).join('')}
+          </select>
+        </label>
+        <a class="order-btn" href="#" data-index="${i}" onclick="return handleAddToCart(this)">
+          🛒 Sepete ekle
+        </a>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+function renderContact(){
+  document.getElementById('contactRow').innerHTML = `
+    <a class="contact-chip" href="${waLink('genel sipariş')}" target="_blank" rel="noopener">💬 WhatsApp'tan yaz</a>
+    <a class="contact-chip" href="https://instagram.com/${CONFIG.instagram}" target="_blank" rel="noopener">📸 @${CONFIG.instagram}</a>
+  `;
+}
+
+/* ============================================================
+   SEPET — birden fazla ürünü toplayıp tek WhatsApp mesajıyla gönderme
+   ============================================================ */
+const CART_KEY = 'atolye_sepet';
+let cart = [];
+
+function loadCart(){
+  try{
+    const raw = localStorage.getItem(CART_KEY);
+    cart = raw ? JSON.parse(raw) : [];
+  }catch(e){ cart = []; }
+}
+function saveCart(){
+  try{ localStorage.setItem(CART_KEY, JSON.stringify(cart)); }catch(e){}
+}
+
+function handleAddToCart(linkEl){
+  const card = linkEl.closest('.card');
+  const index = Number(linkEl.dataset.index);
+  const color = card.querySelector('.color-select').value;
+  const existing = cart.find(item => item.index === index && item.color === color);
+  if (existing){
+    existing.qty += 1;
+  } else {
+    cart.push({ index, color, qty: 1 });
+  }
+  saveCart();
+  renderCart();
+
+  // Buton üzerinde kısa bir "eklendi" geri bildirimi
+  const original = linkEl.textContent;
+  linkEl.textContent = '✓ Sepete eklendi';
+  linkEl.classList.add('in-cart');
+  setTimeout(() => { linkEl.textContent = original; linkEl.classList.remove('in-cart'); }, 1100);
+
+  return false; // sayfanın yukarı kaymasını engeller (href="#")
+}
+
+function changeQty(itemIdx, delta){
+  const item = cart[itemIdx];
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0){ cart.splice(itemIdx, 1); }
+  saveCart();
+  renderCart();
+}
+
+function removeCartItem(itemIdx){
+  cart.splice(itemIdx, 1);
+  saveCart();
+  renderCart();
+}
+
+function clearCart(){
+  cart = [];
+  saveCart();
+  renderCart();
+}
+
+function cartTotalPrice(){
+  return cart.reduce((sum, item) => {
+    const p = products[item.index];
+    return sum + (p ? p.price * item.qty : 0);
+  }, 0);
+}
+
+function buildCartWhatsAppLink(){
+  if (cart.length === 0) return `https://wa.me/${CONFIG.whatsapp}`;
+  const lines = cart.map(item => {
+    const p = products[item.index];
+    if (!p) return '';
+    return `• ${p.name} — ${item.color} x${item.qty} (${p.price * item.qty} TL)`;
+  }).filter(Boolean);
+  const total = cartTotalPrice();
+  const text = `Merhaba! Aşağıdaki ürünleri sipariş etmek istiyorum:\n\n${lines.join('\n')}\n\nToplam: ${total} TL`;
+  return `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`;
+}
+
+function renderCart(){
+  const count = cart.reduce((sum, item) => sum + item.qty, 0);
+  document.getElementById('cartCount').textContent = count;
+
+  const itemsEl = document.getElementById('cartItems');
+  if (cart.length === 0){
+    itemsEl.innerHTML = `<div class="cart-empty">Sepetin şu an boş.<br>Ürünleri "Sepete ekle" ile buraya toplayabilirsin.</div>`;
+  } else {
+    itemsEl.innerHTML = cart.map((item, idx) => {
+      const p = products[item.index];
+      if (!p) return '';
+      const hex = getColorHex(item.color);
+      return `
+        <div class="cart-item">
+          <div class="cart-item-visual" style="background:${hexToRgba(hex, 0.18)}">
+            ${p.img ? `<img src="${p.img}" alt="${p.name}">` : p.emoji}
+          </div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">${p.name}</div>
+            <div class="cart-item-color">Renk: ${item.color}</div>
+            <div class="cart-item-price">${p.price * item.qty} TL</div>
+          </div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty(${idx}, -1)">−</button>
+            <span class="qty-val">${item.qty}</span>
+            <button class="qty-btn" onclick="changeQty(${idx}, 1)">+</button>
+          </div>
+          <button class="cart-item-remove" onclick="removeCartItem(${idx})">Sil</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  document.getElementById('cartTotal').textContent = `${cartTotalPrice()} TL`;
+  document.getElementById('cartSendBtn').href = buildCartWhatsAppLink();
+}
+
+function openCart(){ document.getElementById('cartOverlay').classList.add('open'); }
+function closeCart(){ document.getElementById('cartOverlay').classList.remove('open'); }
+
+document.getElementById('cartFab').addEventListener('click', openCart);
+document.getElementById('cartClose').addEventListener('click', closeCart);
+document.getElementById('cartOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'cartOverlay') closeCart();
+});
+document.getElementById('cartClearBtn').addEventListener('click', clearCart);
+
+function renderQR(){
+  const isLocalFile = window.location.protocol === 'file:';
+  const url = window.location.href;
+  document.getElementById('urlText').textContent = isLocalFile
+    ? 'Bu dosya henüz internete yüklenmedi'
+    : url;
+
+  if (isLocalFile){
+    document.getElementById('qrArea').innerHTML = `
+      <div class="warn-box">
+        ⚠️ Bu sayfa şu an bilgisayarda yerel bir dosya olarak açık, henüz internette bir adresi yok.
+        Bu yüzden gerçek bir QR kod oluşturulamıyor. Önce dosyayı internete yükle (aşağıdaki sohbette önerilen
+        adreslerden birine), sonra yüklenen adresten bu sayfayı tekrar aç — QR kod otomatik olarak orada belirecek.
+      </div>`;
+    return;
+  }
+
+  try{
+    new QRCode(document.getElementById('qrcode'), {
+      text: url,
+      width: 188,
+      height: 188,
+      colorDark: "#1B2420",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }catch(e){
+    document.getElementById('qrcode').textContent = 'QR kod yüklenemedi, linki kopyalayıp paylaşabilirsin.';
+  }
+}
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const btn = document.getElementById('copyBtn');
+    const old = btn.textContent;
+    btn.textContent = 'Kopyalandı ✓';
+    setTimeout(() => btn.textContent = old, 1600);
+  });
+});
+
+document.getElementById('shopName').textContent = CONFIG.shopName;
+renderProducts();
+renderContact();
+renderQR();
+loadCart();
+renderCart();
+</script>
+</body>
+</html>

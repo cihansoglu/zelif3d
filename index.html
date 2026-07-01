@@ -134,6 +134,23 @@
     box-shadow: var(--shadow);
   }
 
+  /* Ürün rozeti — görselin sol alt köşesinde: "YENİ", "POPÜLER" vb. */
+  .card-badge{
+    position:absolute; bottom:12px; left:12px;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing: 1px;
+    text-transform:uppercase;
+    padding: 5px 11px;
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+  }
+  .badge-yeni      { background: var(--green);  color:#fff; }
+  .badge-populer   { background: var(--orange); color:#fff; }
+  .badge-sinirli   { background: var(--yellow); color: var(--ink); }
+  .badge-tukendi   { background: #aaa;          color:#fff; }
+
   .card-body{ padding: 16px 18px 20px; display:flex; flex-direction:column; gap:10px; flex:1; }
   .card-title{ font-size:19px; font-weight:700; }
   .card-desc{ font-size: 13.5px; color: var(--ink-soft); margin:0; }
@@ -454,7 +471,7 @@
       <div class="step">
         <div class="step-num">ADIM 3</div>
         <strong>Teslim al</strong>
-        <p>Baskı bitince haber verilir, okulda ya da buluşarak teslim edilir.</p>
+        <p>Baskı bitince haber verilir, okul çıkışı ya da Bağlıca'da buluşarak teslim edilir.</p>
       </div>
     </div>
     <div class="contact-row" id="contactRow"></div>
@@ -476,7 +493,7 @@
 
 </main>
 
-<footer>BAMBU LAB A1 COMBO İLE BASILDI · KATMAN KATMAN EL İŞÇİLİĞİ</footer>
+<footer>ZELİF 3D BASKI ATÖLYESİ · KATMAN KATMAN EL İŞÇİLİĞİ</footer>
 
 <!-- Yüzen sepet butonu -->
 <button class="cart-fab" id="cartFab">
@@ -504,11 +521,11 @@
 /* ============================================================
    AYARLAR — Dükkan adını, iletişim bilgilerini buradan değiştir
    ============================================================ */
-    const CONFIG = {
-      shopName: "Zelif 3D Baskı Atölyesi",      // Üstteki büyük başlık
-      whatsapp: "905305250278",              // Başında 90 ile, boşluksuz (örn: 905321234567)
-      instagram: "atolye_hesabi",            // @ işareti olmadan kullanıcı adı
-    };
+const CONFIG = {
+  shopName: "Zelif 3D Baskı Atölyesi",      // Üstteki büyük başlık
+  whatsapp: "905459850311",              // Başında 90 ile, boşluksuz (örn: 905321234567)
+  instagram: "atolye_hesabi",            // @ işareti olmadan kullanıcı adı
+};
 
 /* ============================================================
    ÜRÜNLER — Yeni ürün eklemek için aşağıdaki listeye bir blok daha
@@ -530,6 +547,7 @@
         emoji: "",
         img: "1-infinity-cube-big.jpeg",
         deliveryTime: "2 gün",
+        badge: "yeni",
         colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Beyaz", "Siyah", "Rainbow", "Gri"],
         desc: "4 x 8cm büyüklüğünde sonsuzluk küpü, stres atan fidget oyuncak."
       },
@@ -557,6 +575,7 @@
         emoji: "",
         img: "4-macaron-clicker.jpeg",
         deliveryTime: "2 gün",
+        badge: "popüler",
         colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Rainbow"],
         desc: "Tatlı ve renkli makaronlar şeklinde tasarlanmış, stres atan clicker anahtarlık."
       },
@@ -631,6 +650,12 @@ function renderProducts(){
       <div class="card-visual" style="background:${hexToRgba(defaultHex, 0.16)}">
         ${p.img ? `<img src="${p.img}" alt="${p.name}">` : p.emoji}
         <div class="price-tag">${p.price} TL</div>
+        ${p.badge ? `<div class="card-badge badge-${p.badge}">${
+          p.badge === 'yeni'    ? '✨ Yeni'      :
+          p.badge === 'populer' ? '🔥 Popüler'  :
+          p.badge === 'sinirli' ? '⚡ Sınırlı'  :
+          p.badge === 'tukendi' ? '✕ Tükendi'   : p.badge
+        }</div>` : ''}
       </div>
       <div class="card-body">
         <div class="card-title">${p.name}</div>

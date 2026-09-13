@@ -430,6 +430,40 @@
     .card-visual{ height:140px; font-size:54px; }
   }
 
+  /* ---------- Kategori filtre çubuğu ---------- */
+  .cat-bar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom: 24px;
+  }
+  .cat-btn{
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1.5px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+    cursor:pointer;
+    transition: background .14s ease, color .14s ease, border-color .14s ease;
+    white-space:nowrap;
+  }
+  .cat-btn:hover{ border-color: var(--green); color: var(--green-dark); }
+  .cat-btn.active{
+    background: var(--green);
+    color:#fff;
+    border-color: var(--green);
+  }
+  .no-results{
+    grid-column: 1/-1;
+    text-align:center;
+    padding: 40px 10px;
+    color: var(--ink-soft);
+    font-size:14px;
+  }
+
   /* Klavye ile gezinenler için odak çizgisi */
   a:focus-visible, button:focus-visible{ outline: 3px solid var(--orange); outline-offset:2px; }
   @media (prefers-reduced-motion: reduce){
@@ -451,6 +485,7 @@
   <section id="urunler">
     <div class="section-eyebrow">// katalog</div>
     <h2 class="section-title">Şu an baskıda olanlar</h2>
+    <div class="cat-bar" id="catBar"></div>
     <div class="grid" id="productGrid"></div>
   </section>
 
@@ -471,7 +506,7 @@
       <div class="step">
         <div class="step-num">ADIM 3</div>
         <strong>Teslim al</strong>
-        <p>Baskı bitince haber verilir, okul çıkışı ya da Bağlıca'da adrese teslim edilir.</p>
+        <p>Baskı bitince haber verilir, okulda ya da buluşarak teslim edilir.</p>
       </div>
     </div>
     <div class="contact-row" id="contactRow"></div>
@@ -493,7 +528,7 @@
 
 </main>
 
-<footer>ZELİF 3D BASKI ATÖLYESİ · KATMAN KATMAN EL İŞÇİLİĞİ</footer>
+<footer>BAMBU LAB A1 COMBO İLE BASILDI · KATMAN KATMAN EL İŞÇİLİĞİ</footer>
 
 <!-- Yüzen sepet butonu -->
 <button class="cart-fab" id="cartFab">
@@ -522,8 +557,8 @@
    AYARLAR — Dükkan adını, iletişim bilgilerini buradan değiştir
    ============================================================ */
 const CONFIG = {
-  shopName: "Zelif 3D Baskı Atölyesi",      // Üstteki büyük başlık
-  whatsapp: "905459850311",              // Başında 90 ile, boşluksuz (örn: 905321234567)
+  shopName: "Minik Baskı Atölyesi",      // Üstteki büyük başlık
+  whatsapp: "905XXXXXXXXX",              // Başında 90 ile, boşluksuz (örn: 905321234567)
   instagram: "atolye_hesabi",            // @ işareti olmadan kullanıcı adı
 };
 
@@ -540,64 +575,74 @@ const CONFIG = {
              Yeni bir renk eklersen, aşağıdaki COLOR_HEX listesine de
              o rengin bir ton kodu eklemen gerekir (yoksa gri görünür).
    ============================================================ */
-    const products = [
-      {
-        name: "Sonsuzluk Küpü (Büyük)",
-        price: 50,
-        emoji: "",
-        img: "1-infinity-cube-big.jpeg",
-        deliveryTime: "2 gün",
-        badge: "yeni",
-        colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Beyaz", "Siyah", "Rainbow", "Gri"],
-        desc: "4 x 8cm büyüklüğünde sonsuzluk küpü, stres atan fidget oyuncak."
-      },
-      {
-        name: "Flexi Yılan",
-        price: 50,
-        emoji: "",
-        img: "2-flexi-snake.jpeg",
-        deliveryTime: "2 gün",
-        colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Beyaz", "Siyah", "Rainbow", "Gri"],
-        desc: "Sevimli ve hareketli yılan, stres atan flexi anahtarlık."
-      },
-      {
-        name: "Çin Mantısı Clicker",
-        price: 50,
-        emoji: "",
-        img: "3-dumpling-clicker.jpeg",
-        deliveryTime: "2 gün",
-        colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Rainbow"],
-        desc: "Sevimli yüz ifadeleriyle tasarlanmış, stres atan clicker anahtarlık."
-      },
-      {
-        name: "Makaron Clicker",
-        price: 50,
-        emoji: "",
-        img: "4-macaron-clicker.jpeg",
-        deliveryTime: "2 gün",
-        badge: "popüler",
-        colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Rainbow"],
-        desc: "Tatlı ve renkli makaronlar şeklinde tasarlanmış, stres atan clicker anahtarlık."
-      },
-      {
-        name: "Bebek Ejderha",
-        price: 50,
-        emoji: "",
-        img: "5-baby-dragon.jpeg",
-        deliveryTime: "2 gün",
-        colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Rainbow"],
-        desc: "Sevimli ve hareketli ejderhalar, stres atan flexi anahtarlık."
-      },
-      {
-        name: "Trax Oyuncak",
-        price: 50,
-        emoji: "",
-        img: "6-trax-toy.jpeg",
-        deliveryTime: "2 gün",
-        colors: ["Açık Mavi", "Yeşil", "Kırmızı", "Mor", "Siyah", "Rainbow", "Gri"],
-        desc: "Farklı renklerde tasarlanmış,elde çevrilebilen stres atan fidget oyuncak. "
-      }
-    ];
+const products = [
+  {
+    name: "Ejderha Anahtarlık",
+    price: 35,
+    emoji: "🐉",
+    img: null,
+    deliveryTime: "2-3 gün",
+    badge: "yeni",
+    category: "Hareketli Hayvanlar",
+    colors: ["Turuncu", "Yeşil", "Mavi"],
+    desc: "Eklemli, kıvrılabilen mini ejderha. Çantaya ya da anahtarlığa takılır."
+  },
+  {
+    name: "Kalpli Hazine Kutusu",
+    price: 45,
+    emoji: "💝",
+    img: null,
+    deliveryTime: "3-4 gün",
+    badge: "populer",
+    category: "Clickerlar",
+    colors: ["Pembe", "Kırmızı", "Mor"],
+    desc: "Kapaklı küçük kutu. İçine yüzük, sakız ya da sır saklanır."
+  },
+  {
+    name: "Sevimli Kedi Figürü",
+    price: 40,
+    emoji: "🐱",
+    img: null,
+    deliveryTime: "2-3 gün",
+    badge: null,
+    category: "Hareketli Hayvanlar",
+    colors: ["Açık Mavi", "Beyaz", "Gri"],
+    desc: "Masaüstüne ya da rafa konacak minik kedi heykelciği."
+  },
+  {
+    name: "Telefon Standı",
+    price: 60,
+    emoji: "📱",
+    img: null,
+    deliveryTime: "4-5 gün",
+    badge: "sinirli",
+    category: "Sonsuzluk Küpleri",
+    colors: ["Yeşil", "Siyah", "Turuncu"],
+    desc: "Video izlerken ya da video görüşmesinde telefonu dik tutar."
+  },
+  {
+    name: "Dinozor Oyuncak",
+    price: 50,
+    emoji: "🦖",
+    img: null,
+    deliveryTime: "3-4 gün",
+    badge: null,
+    category: "Hareketli Hayvanlar",
+    colors: ["Sarı", "Yeşil", "Kahverengi"],
+    desc: "Elde tutulabilir boyutta, eklemli dinozor figürü."
+  },
+  {
+    name: "Mini Kalem Tutucu",
+    price: 55,
+    emoji: "✏️",
+    img: null,
+    deliveryTime: "3-5 gün",
+    badge: null,
+    category: "Sonsuzluk Küpleri",
+    colors: ["Lila", "Mavi", "Pembe"],
+    desc: "Masada kalem, fırça ya da makas için düzenli bir bölme."
+  }
+];
 
 /* ============================================================
    AŞAĞISI: Sayfayı otomatik dolduran kod — genelde dokunmana gerek yok
@@ -640,9 +685,37 @@ function updateCardColor(selectEl){
   card.querySelector('.card-visual').style.background = hexToRgba(hex, 0.16);
 }
 
+let activeCategory = 'Tümü';
+
+function renderCategories(){
+  const categories = ['Tümü', ...new Set(products.map(p => p.category))];
+  const bar = document.getElementById('catBar');
+  bar.innerHTML = categories.map(cat => `
+    <button class="cat-btn${cat === activeCategory ? ' active' : ''}" onclick="selectCategory('${cat}')">
+      ${cat}
+    </button>
+  `).join('');
+}
+
+function selectCategory(cat){
+  activeCategory = cat;
+  renderCategories();
+  renderProducts();
+}
+
 function renderProducts(){
   const grid = document.getElementById('productGrid');
-  grid.innerHTML = products.map((p, i) => {
+  const filtered = activeCategory === 'Tümü'
+    ? products
+    : products.filter(p => p.category === activeCategory);
+
+  if(filtered.length === 0){
+    grid.innerHTML = `<div class="no-results">Bu kategoride henüz ürün yok.</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map((p) => {
+    const i = products.indexOf(p);
     const defaultColor = p.colors[0];
     const defaultHex = getColorHex(defaultColor);
     return `
@@ -651,10 +724,10 @@ function renderProducts(){
         ${p.img ? `<img src="${p.img}" alt="${p.name}">` : p.emoji}
         <div class="price-tag">${p.price} TL</div>
         ${p.badge ? `<div class="card-badge badge-${p.badge}">${
-          p.badge === 'yeni'    ? '✨ Yeni'      :
-          p.badge === 'populer' ? '🔥 Popüler'  :
-          p.badge === 'sinirli' ? '⚡ Sınırlı'  :
-          p.badge === 'tukendi' ? '✕ Tükendi'   : p.badge
+          p.badge === 'yeni'     ? '✨ Yeni'     :
+          p.badge === 'populer'  ? '🔥 Popüler'  :
+          p.badge === 'sinirli'  ? '⚡ Sınırlı'  :
+          p.badge === 'tukendi'  ? '✕ Tükendi'   : p.badge
         }</div>` : ''}
       </div>
       <div class="card-body">
@@ -852,6 +925,7 @@ document.getElementById('copyBtn').addEventListener('click', () => {
 });
 
 document.getElementById('shopName').textContent = CONFIG.shopName;
+renderCategories();
 renderProducts();
 renderContact();
 renderQR();
